@@ -1,10 +1,55 @@
 ﻿@page
+@using RoboStockChat.Models
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
 @model IndexModel
 @{
     ViewData["Title"] = "Home page";
 }
 
-<div class="text-center">
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h4>Chatrooms</h4>
+        </div>
+    </div>
+    <div class="row justify-content-md-center">
+        <div class="col-md-8">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th scope="col">Id</th>
+                    <th scope="col">Name</th>
+                    <th scope="col"></th>
+                    <th scope="col"></th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (Chatroom cr in (ViewData["Chatrooms"] as IEnumerable<Chatroom>) ?? new Chatroom[] {})
+                {
+                    <tr class="align-baseline">
+                        <td>@cr.Id</td>
+                        <td>@cr.Name</td>
+                        <td><a class="btn btn-primary" asp-page="/Chatroom" asp-route-id="@cr.Id">Join</a></td>
+                        <td>
+                            @if (SignInManager.IsSignedIn(User) && UserManager.GetUserId(User) == cr.CreatedBy)
+                            {
+                                <button class="btn btn-danger">Delete channel</button>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@*<div class="text-center">
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+
+    
+    
+
+</div>*@
