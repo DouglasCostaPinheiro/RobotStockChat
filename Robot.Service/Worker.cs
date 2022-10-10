@@ -5,8 +5,6 @@ using MQTTnet;
 using MQTTnet.Client;
 using Newtonsoft.Json;
 using Robot.Service.Framework;
-//using uPLibrary.Networking.M2Mqtt;
-//using uPLibrary.Networking.M2Mqtt.Messages;
 
 namespace Robot.Service
 {
@@ -70,6 +68,7 @@ namespace Robot.Service
                         }
                         catch (Exception ex)
                         {
+                            _logger.LogError($"Error consulting stock for {stock}: {ex.Message}{Environment.NewLine}{ex.StackTrace}");
                             responseString = $"Error consulting stock for {stock}: {ex.Message}";
                         }
                         finally
@@ -96,25 +95,6 @@ namespace Robot.Service
                     .Build();
 
                 await _mqttClient.SubscribeAsync(mqttSubscribeOptions, CancellationToken.None);
-            }
-
-            //var client = new MqttClient("broker.emqx.io");
-            //// register to message received 
-            //client.MqttMsgPublishReceived += (sender, args) =>
-            //{
-
-            //};
-
-            //string clientId = Guid.NewGuid().ToString();
-            //client.Connect(clientId);
-
-            //// subscribe to the topic "/home/temperature" with QoS 2 
-            //client.Subscribe(new[] { $"Application/${_appSettings.ApplicationId}/+" }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
-
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                //    _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                //    await Task.Delay(1000, stoppingToken);
             }
         }
 
