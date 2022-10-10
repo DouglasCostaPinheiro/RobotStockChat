@@ -3,7 +3,9 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using MQTTnet;
 using MQTTnet.Client;
+using MQTTnet.Protocol;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Robot.Service.Framework;
 
 namespace Robot.Service
@@ -14,7 +16,7 @@ namespace Robot.Service
         private readonly string StockInfoTemplate = "https://stooq.com/q/l/?s={0}&f=sd2t2ohlcv&h&e=csv";
         private readonly ILogger<Worker> _logger;
         private readonly AppSettings _appSettings;
-        private MqttFactory _mqttFactory = new MqttFactory();
+        private MqttFactory _mqttFactory = new();
         private IMqttClient _mqttClient;
 
         public Worker(ILogger<Worker> logger, AppSettings appSettings, IHttpClientFactory httpClientFactory)
@@ -37,53 +39,22 @@ namespace Robot.Service
 
                 _mqttClient.ApplicationMessageReceivedAsync += async (message) =>
                 {
-                    string responseString = null;
                     var topic = message.ApplicationMessage.Topic;
-                    var payload = message.ApplicationMessage.ConvertPayloadToString();
-                    var regexTest = Regex.Match(payload, "\\/(stock=)((.)+)");
-                    if (regexTest.Success)
+                    var payload = JsonConvert.DeserializeObject<JObject>(message.ApplicationMessage.ConvertPayloadToString());
+                    var responseMessage = await GetMessageForStock(payload.GetValue("message").Value<string>());
+
+                    if (responseMessage != null)
                     {
-                        var stock = regexTest.Groups[2].Value;
-
-                        try
+                        await _mqttClient.PublishStringAsync(topic, JsonConvert.SerializeObject(new
                         {
-                            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, string.Format(StockInfoTemplate, stock));
-
-                            var httpClient = _httpClientFactory.CreateClient();
-                            var httpResponseMessage = await httpClient.SendAsync(httpRequestMessage);
-
-                            if (httpResponseMessage.IsSuccessStatusCode)
+                            timeStamp = DateTime.UtcNow.ToString("o"),
+                            message = responseMessage,
+                            owner = new
                             {
-                                using var contentStream =
-                                    await httpResponseMessage.Content.ReadAsStreamAsync();
-                                var dataTable = ConvertCSVtoDataTable(contentStream);
-                                if (dataTable.Rows.Count > 0 && (string)dataTable.Rows[0]["Date"] != "N/D")
-                                {
-                                    responseString = $"{stock} opened at {dataTable.Rows[0]["Open"]}, had a high of {dataTable.Rows[0]["High"]}, a low of {dataTable.Rows[0]["Low"]}, and a close of {dataTable.Rows[0]["Close"]} per share.";
-                                } else
-                                {
-                                    responseString = $"No data found for stock {stock}.";
-                                }
+                                id = _appSettings.ApplicationId,
+                                name = "RoboStock"
                             }
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError($"Error consulting stock for {stock}: {ex.Message}{Environment.NewLine}{ex.StackTrace}");
-                            responseString = $"Error consulting stock for {stock}: {ex.Message}";
-                        }
-                        finally
-                        {
-                            await _mqttClient.PublishStringAsync(topic, JsonConvert.SerializeObject(new
-                            {
-                                timeStamp = DateTime.UtcNow.ToString("o"),
-                                message = responseString,
-                                owner = new
-                                {
-                                    id = _appSettings.ApplicationId,
-                                    name = "RoboStock"
-                                }
-                            }));
-                        }
+                        }), cancellationToken: CancellationToken.None);
                     }
                 };
 
@@ -96,6 +67,48 @@ namespace Robot.Service
 
                 await _mqttClient.SubscribeAsync(mqttSubscribeOptions, CancellationToken.None);
             }
+        }
+
+        public async Task<string?> GetMessageForStock(string messagePayload)
+        {
+            string? responseString = null;
+            var regexTest = Regex.Match(messagePayload, "^\\/(stock=)((.)+)$");
+            if (!regexTest.Success) return responseString;
+            
+            var stock = regexTest.Groups[2].Value;
+
+            try
+            {
+                var httpRequestMessage =
+                    new HttpRequestMessage(HttpMethod.Get, string.Format(StockInfoTemplate, stock));
+
+                var httpClient = _httpClientFactory.CreateClient();
+                var httpResponseMessage = await httpClient.SendAsync(httpRequestMessage);
+
+                if (httpResponseMessage.IsSuccessStatusCode)
+                {
+                    using var contentStream =
+                        await httpResponseMessage.Content.ReadAsStreamAsync();
+                    var dataTable = ConvertCSVtoDataTable(contentStream);
+                    if (dataTable.Rows.Count > 0 && (string) dataTable.Rows[0]["Date"] != "N/D")
+                    {
+                        responseString =
+                            $"{stock} opened at {dataTable.Rows[0]["Open"]}, had a high of {dataTable.Rows[0]["High"]}, a low of {dataTable.Rows[0]["Low"]}, and a close of {dataTable.Rows[0]["Close"]} per share.";
+                    }
+                    else
+                    {
+                        responseString = $"No data found for stock {stock}.";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    $"Error consulting stock for {stock}: {ex.Message}{Environment.NewLine}{ex.StackTrace}");
+                responseString = $"Error consulting stock for {stock}: {ex.Message}";
+            }
+
+            return responseString;
         }
 
         private static DataTable ConvertCSVtoDataTable(Stream stream)

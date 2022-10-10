@@ -5,7 +5,9 @@ VisualStudioVersion = 17.0.32126.317
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoboStockChat", "RoboStockChat\RoboStockChat.csproj", "{3330CEA4-6A80-4F78-8B1D-16DBBF10E0B0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Robot.Service", "Robot.Service\Robot.Service.csproj", "{78071B1F-00F5-4C27-A060-00383946EEAF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Robot.Service", "Robot.Service\Robot.Service.csproj", "{78071B1F-00F5-4C27-A060-00383946EEAF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Robot.Service.Test", "Robot.Service.Test\Robot.Service.Test.csproj", "{2FEC0A06-BEB6-4700-8B0D-7D4440230558}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{78071B1F-00F5-4C27-A060-00383946EEAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{78071B1F-00F5-4C27-A060-00383946EEAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{78071B1F-00F5-4C27-A060-00383946EEAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FEC0A06-BEB6-4700-8B0D-7D4440230558}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FEC0A06-BEB6-4700-8B0D-7D4440230558}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FEC0A06-BEB6-4700-8B0D-7D4440230558}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FEC0A06-BEB6-4700-8B0D-7D4440230558}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
