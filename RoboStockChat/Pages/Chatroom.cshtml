@@ -106,9 +106,9 @@
                     }
                 } else {
                     if (doesMessageNeedsANewArea(message)) {
-                        body.insertAdjacentHTML("beforeend", `<div class="d-flex flex-row justify-content-end"><div><p class="small p-2 ms-3 mb-1 rounded-3 bg-primary" style="background-color: #f5f6f7;">${formattedMessage}</p></div></div>`);
+                        body.insertAdjacentHTML("beforeend", `<div class="d-flex flex-row justify-content-end"><div><p class="small p-2 ms-3 mb-1 rounded-3 ${message.owner.id === '@(Model.ApplicationId)' ? 'bg-success' : 'bg-primary'}" style="background-color: #f5f6f7;">${formattedMessage}</p></div></div>`);
                     } else {
-                        lastMessage.insertAdjacentHTML("beforeend", `<p class="small p-2 ms-3 mb-1 rounded-3 bg-primary">${formattedMessage}</p>`);
+                        lastMessage.insertAdjacentHTML("beforeend", `<p class="small p-2 ms-3 mb-1 rounded-3 ${message.owner.id === '@(Model.ApplicationId)' ? 'bg-success' : 'bg-primary'} bg-primary">${formattedMessage}</p>`);
                     }
                 }
 
