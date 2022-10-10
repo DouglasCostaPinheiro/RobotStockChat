@@ -10,6 +10,22 @@
 <div class="container">
     <div class="row">
         <div class="col-md-12">
+            <h4>Create a new Chat Room</h4>
+        </div>
+    </div>
+    <form asp-page="/Index" asp-page-handler="add" method="post">
+        <div class="row justify-content-md-center">
+            <div class="col-md-5 offset-md-2">
+                <input type="text" class="form-control form-control-lg" id="Name" name="Name"
+                       placeholder="Chatroom name">
+            </div>
+            <div class="col-md-5 align-self-md-center">
+                <button type="submit" class="btn btn-success">Create</button>
+            </div>
+        </div>
+    </form>
+    <div class="row">
+        <div class="col-md-12">
             <h4>Chatrooms</h4>
         </div>
     </div>
@@ -34,7 +50,10 @@
                         <td>
                             @if (SignInManager.IsSignedIn(User) && UserManager.GetUserId(User) == cr.CreatedBy)
                             {
-                                <button class="btn btn-danger">Delete channel</button>
+                                <form asp-page-handler="delete" asp-page="/Index" method="post">
+                                    <input type="hidden" name="Id" id="Id" value="@cr.Id" />
+                                    <button class="btn btn-danger" type="submit">Delete channel</button>
+                                </form>
                             }
                         </td>
                     </tr>
@@ -44,12 +63,3 @@
         </div>
     </div>
 </div>
-
-@*<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-
-    
-    
-
-</div>*@
